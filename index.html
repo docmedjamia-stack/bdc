@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Tableau de bord · Assistant IA</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --ink:#16181d; --muted:#667085; --line:#e4e7ec; --accent:#d9480f; --accent-soft:#fff1ea;
+          --ok:#12805c; --ok-soft:#e7f6ef; --warn:#b54708; --warn-soft:#fff6e5; --bad:#b42318; --bad-soft:#fdecea; --info:#175cd3; --info-soft:#eaf2ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .hidden { display:none !important; }
+  /* Login */
+  .login { min-height:100vh; display:grid; place-items:center; padding:24px; }
+  .login form { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:28px; width:100%; max-width:380px; display:grid; gap:14px; }
+  .login h1 { margin:0; font-size:20px; } .login p { margin:0; color:var(--muted); font-size:14px; }
+  label { display:grid; gap:4px; font-size:13px; color:var(--muted); }
+  input, select, textarea { border:1px solid var(--line); border-radius:8px; padding:9px 11px; background:#fff; }
+  input:focus, select:focus, textarea:focus { outline:2px solid var(--accent); outline-offset:-1px; border-color:transparent; }
+  .btn { border:0; border-radius:8px; padding:9px 14px; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; }
+  .btn.ghost { background:transparent; color:var(--ink); border:1px solid var(--line); font-weight:500; }
+  .btn.small { padding:5px 10px; font-size:13px; }
+  .btn:disabled { opacity:.55; cursor:default; }
+  .err { color:var(--bad); font-size:14px; min-height:1em; }
+  /* App shell */
+  header { background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+  .bar { max-width:1180px; margin:0 auto; padding:12px 20px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  .brand { font-weight:700; font-size:16px; margin-right:auto; } .brand small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
+  .who { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); } .who input { width:130px; padding:6px 9px; }
+  nav { max-width:1180px; margin:0 auto; padding:0 20px; display:flex; gap:4px; overflow-x:auto; }
+  nav button { background:none; border:0; border-bottom:2px solid transparent; padding:10px 12px; cursor:pointer; color:var(--muted); white-space:nowrap; font-weight:500; }
+  nav button[aria-selected="true"] { color:var(--ink); border-bottom-color:var(--accent); }
+  nav .count { display:inline-block; min-width:20px; padding:0 6px; margin-left:6px; border-radius:10px; background:var(--accent); color:#fff; font-size:12px; text-align:center; }
+  main { max-width:1180px; margin:0 auto; padding:20px; display:grid; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .card h2 { margin:0 0 12px; font-size:16px; } .card h2 small { color:var(--muted); font-weight:400; font-size:13px; margin-left:6px; }
+  .empty { color:var(--muted); font-size:14px; padding:6px 0; }
+  .row { display:flex; gap:12px; align-items:center; padding:11px 0; border-top:1px solid var(--line); flex-wrap:wrap; }
+  .row:first-of-type { border-top:0; }
+  .row .main { flex:1; min-width:220px; } .row .main b { display:block; } .row .main span { color:var(--muted); font-size:13px; }
+  .row .actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .tel { font-weight:600; color:var(--accent); text-decoration:none; white-space:nowrap; }
+  .pill { display:inline-block; padding:2px 9px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
+  .p-booked { background:var(--warn-soft); color:var(--warn); } .p-confirmed { background:var(--info-soft); color:var(--info); }
+  .p-showed { background:var(--ok-soft); color:var(--ok); } .p-no_show, .p-failed { background:var(--bad-soft); color:var(--bad); }
+  .p-cancelled, .p-skipped, .p-closed { background:#f0f1f3; color:var(--muted); } .p-handoff { background:var(--accent-soft); color:var(--accent); }
+  .p-open, .p-sent { background:var(--ok-soft); color:var(--ok); }
+  .when { font-variant-numeric: tabular-nums; min-width:150px; font-weight:600; }
+  .when small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
+  /* Tables */
+  .tablewrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { text-align:left; font-weight:600; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.03em; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td { padding:10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr.click { cursor:pointer; } tr.click:hover td { background:#fafbfc; }
+  td.num, th.num { text-align:right; font-variant-numeric: tabular-nums; }
+  .muted { color:var(--muted); }
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .toolbar input[type=search] { flex:1; min-width:200px; }
+  /* KPIs */
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .kpi .label { color:var(--muted); font-size:13px; } .kpi .value { font-size:28px; font-weight:700; font-variant-numeric: tabular-nums; margin-top:2px; }
+  .kpi .sub { color:var(--muted); font-size:12px; }
+  .meter { height:10px; border-radius:6px; background:#eef0f3; overflow:hidden; margin-top:10px; }
+  .meter > div { height:100%; background:var(--accent); border-radius:6px; transition:width .4s; }
+  .guarantee .value { color:var(--accent); }
+  /* Drawer */
+  .scrim { position:fixed; inset:0; background:rgba(16,24,40,.35); z-index:20; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(560px, 100vw); background:var(--card); z-index:21; display:flex; flex-direction:column; box-shadow:-8px 0 30px rgba(0,0,0,.12); }
+  .drawer .hd { padding:16px 18px; border-bottom:1px solid var(--line); display:flex; align-items:flex-start; gap:10px; }
+  .drawer .hd h3 { margin:0; font-size:17px; flex:1; } .drawer .bd { padding:16px 18px; overflow-y:auto; display:grid; gap:16px; }
+  dl { display:grid; grid-template-columns:140px 1fr; gap:6px 12px; margin:0; font-size:14px; } dt { color:var(--muted); } dd { margin:0; }
+  .chat { display:flex; flex-direction:column; gap:8px; background:var(--bg); border-radius:10px; padding:12px; }
+  .msg { max-width:85%; padding:8px 11px; border-radius:11px; font-size:14px; white-space:pre-wrap; word-wrap:break-word; }
+  .msg.user { background:#fff; border:1px solid var(--line); align-self:flex-start; }
+  .msg.assistant { background:var(--accent); color:#fff; align-self:flex-end; }
+  .msg time { display:block; font-size:11px; opacity:.7; margin-top:3px; }
+  .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 16px; border-radius:8px; font-size:14px; z-index:30; }
+  .notice { background:var(--warn-soft); color:var(--warn); border-radius:10px; padding:10px 14px; font-size:14px; }
+  @media (max-width:640px) { .bar { padding:10px 14px; } main { padding:14px; } dl { grid-template-columns:110px 1fr; } .when { min-width:0; } }
+</style>
+</head>
+<body>
+
+<section id="login" class="login hidden">
+  <form id="loginForm" autocomplete="on">
+    <h1>Tableau de bord</h1>
+    <p>Assistant IA du concessionnaire : clients, rendez-vous et résultats.</p>
+    <label>Courriel <input id="email" type="email" autocomplete="username" required></label>
+    <label>Mot de passe <input id="password" type="password" autocomplete="current-password" required></label>
+    <button class="btn" id="loginBtn" type="submit">Se connecter</button>
+    <div class="err" id="loginErr" role="alert"></div>
+  </form>
+</section>
+
+<section id="app" class="hidden">
+  <header>
+    <div class="bar">
+      <div class="brand"><span id="dealerName">…</span><small>Assistant virtuel (IA) · tableau de bord</small></div>
+      <select id="dealerPick" class="hidden" aria-label="Concessionnaire"></select>
+      <label class="who" title="Inscrit à côté de chaque action, pour savoir qui a traité quoi">Votre prénom
+        <input id="who" placeholder="ex. Dave" maxlength="40"></label>
+      <button class="btn ghost small" id="refresh" type="button">Actualiser</button>
+      <button class="btn ghost small" id="logout" type="button">Déconnexion</button>
+    </div>
+    <nav role="tablist">
+      <button role="tab" data-tab="todo" aria-selected="true">À faire<span class="count hidden" id="todoCount"></span></button>
+      <button role="tab" data-tab="appts" aria-selected="false">Rendez-vous</button>
+      <button role="tab" data-tab="leads" aria-selected="false">Clients</button>
+      <button role="tab" data-tab="results" aria-selected="false">Résultats</button>
+    </nav>
+  </header>
+  <main id="view"></main>
+</section>
+
+<div id="drawerRoot"></div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://yjihwehbsavfrvgiubcp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_zEhHzGao31S9a6hFzoi5ow_3uARfGSL"; // public key; data is protected by login + row-level security
+const TZ = "America/Toronto";
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true } });
+
+const KIND = { sales: "Visite", test_drive: "Essai routier", service: "Service", trade_appraisal: "Évaluation d'échange" };
+const ASTATUS = { booked: "À confirmer", confirmed: "Confirmé", showed: "Présent", no_show: "Absent", cancelled: "Annulé" };
+const CSTATUS = { open: "En cours", handoff: "À rappeler", closed: "Terminé" };
+const EVENT = { appointment_booked: "Rendez-vous", handoff: "Client à rappeler" };
+const NSTATUS = { sent: "Envoyé", failed: "Échec", skipped: "Non envoyé" };
+
+const S = { dealers: [], dealer: null, convs: [], leads: [], appts: [], notifs: [], tab: "todo", q: "", apptFilter: "upcoming" };
+
+// ---------- helpers ----------
+const $ = (id) => document.getElementById(id);
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return el;
+}
+const fmt = (iso, opts) => new Intl.DateTimeFormat("fr-CA", { timeZone: TZ, ...opts }).format(new Date(iso));
+const dayTime = (iso) => fmt(iso, { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+const dateOnly = (iso) => fmt(iso, { day: "numeric", month: "short" });
+const timeOnly = (iso) => fmt(iso, { hour: "numeric", minute: "2-digit" });
+const localDay = (d) => fmt(d instanceof Date ? d.toISOString() : d, { year: "numeric", month: "2-digit", day: "2-digit" });
+function rel(iso) {
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return "à l'instant"; if (mins < 60) return `il y a ${mins} min`;
+  const hrs = Math.round(mins / 60); if (hrs < 24) return `il y a ${hrs} h`;
+  const days = Math.round(hrs / 24); return days === 1 ? "hier" : `il y a ${days} j`;
+}
+const pill = (cls, text) => h("span", { class: `pill p-${cls}` }, text);
+const telLink = (phone) => phone ? h("a", { class: "tel", href: "tel:" + String(phone).replace(/[^0-9+]/g, "") }, phone) : h("span", { class: "muted" }, "pas de téléphone");
+function toast(msg) { document.querySelectorAll(".toast").forEach((x) => x.remove()); const t = h("div", { class: "toast", role: "status" }, msg); document.body.append(t); setTimeout(() => t.remove(), 2600); }
+function who() { try { return localStorage.getItem("aibdc_who") || ""; } catch { return ""; } }
+function requireWho() {
+  const name = $("who").value.trim();
+  if (!name) { $("who").focus(); toast("Inscrivez votre prénom en haut avant de faire une action."); return null; }
+  return name;
+}
+const leadOf = (convId) => S.leads.find((l) => l.conversation_id === convId) || null;
+const convOf = (id) => S.convs.find((c) => c.id === id) || null;
+
+// ---------- auth ----------
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) startApp(); else showLogin();
+}
+function showLogin() { $("app").classList.add("hidden"); $("login").classList.remove("hidden"); $("email").focus(); }
+$("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); $("loginErr").textContent = ""; $("loginBtn").disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email: $("email").value.trim(), password: $("password").value });
+  $("loginBtn").disabled = false;
+  if (error) { $("loginErr").textContent = "Courriel ou mot de passe incorrect."; return; }
+  $("password").value = ""; startApp();
+});
+$("logout").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
+$("who").addEventListener("change", () => { try { localStorage.setItem("aibdc_who", $("who").value.trim()); } catch {} });
+
+async function startApp() {
+  $("login").classList.add("hidden"); $("app").classList.remove("hidden");
+  $("who").value = who();
+  const { data: dealers, error } = await sb.from("dealers").select("id, slug, name, phone, pilot_started_on, guarantee_target, alert_email").order("name");
+  if (error || !dealers?.length) {
+    $("view").replaceChildren(h("div", { class: "card notice" }, "Ce compte n'est relié à aucun concessionnaire. Contactez votre fournisseur."));
+    return;
+  }
+  S.dealers = dealers;
+  let pick = dealers[0].id; try { pick = localStorage.getItem("aibdc_dealer") || pick; } catch {}
+  S.dealer = dealers.find((d) => d.id === pick) || dealers[0];
+  if (dealers.length > 1) {
+    const sel = $("dealerPick"); sel.classList.remove("hidden");
+    sel.replaceChildren(...dealers.map((d) => h("option", { value: d.id, selected: d.id === S.dealer.id }, d.name)));
+    sel.onchange = () => { S.dealer = dealers.find((d) => d.id === sel.value); try { localStorage.setItem("aibdc_dealer", sel.value); } catch {} load(); };
+  }
+  $("dealerName").textContent = S.dealer.name;
+  await load();
+  setInterval(() => { if (!document.hidden) load(true); }, 60000);
+}
+
+// ---------- data ----------
+async function load(quiet) {
+  const d = S.dealer.id;
+  $("dealerName").textContent = S.dealer.name;
+  if (!quiet) $("view").replaceChildren(h("div", { class: "card empty" }, "Chargement…"));
+  const since = new Date(Date.now() - 120 * 86400000).toISOString();
+  const [c, l, a, n] = await Promise.all([
+    sb.from("conversations").select("id, channel, status, language, created_at, updated_at, handled_by, handled_at").eq("dealer_id", d).gte("created_at", since).order("updated_at", { ascending: false }).limit(1000),
+    sb.from("leads").select("*").eq("dealer_id", d).gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
+    sb.from("appointments").select("*").eq("dealer_id", d).gte("starts_at", since).order("starts_at").limit(1000),
+    sb.from("notifications").select("*").eq("dealer_id", d).order("created_at", { ascending: false }).limit(100),
+  ]);
+  const err = c.error || l.error || a.error || n.error;
+  if (err) {
+    if (/JWT|auth/i.test(err.message)) return showLogin();
+    $("view").replaceChildren(h("div", { class: "card notice" }, "Impossible de charger les données. Réessayez dans un instant."));
+    return;
+  }
+  S.convs = c.data; S.leads = l.data; S.appts = a.data; S.notifs = n.data;
+  render();
+}
+
+async function setApptStatus(appt, status) {
+  const by = requireWho(); if (!by) return;
+  const { error } = await sb.from("appointments").update({ status, handled_by: by, updated_at: new Date().toISOString() }).eq("id", appt.id);
+  if (error) return toast("Erreur : modification non enregistrée.");
+  Object.assign(appt, { status, handled_by: by }); toast(`Rendez-vous : ${ASTATUS[status]}`); render(); refreshDrawer();
+}
+async function markHandled(conv) {
+  const by = requireWho(); if (!by) return;
+  const { error } = await sb.from("conversations").update({ status: "closed", handled_by: by, handled_at: new Date().toISOString() }).eq("id", conv.id);
+  if (error) return toast("Erreur : modification non enregistrée.");
+  Object.assign(conv, { status: "closed", handled_by: by, handled_at: new Date().toISOString() }); toast("Marqué comme traité"); render(); refreshDrawer();
+}
+
+// ---------- views ----------
+document.querySelectorAll("nav [data-tab]").forEach((b) => b.addEventListener("click", () => { S.tab = b.dataset.tab; render(); }));
+$("refresh").addEventListener("click", () => load());
+
+function render() {
+  document.querySelectorAll("nav [data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === S.tab)));
+  const todo = todoItems();
+  const n = todo.handoffs.length + todo.toConfirm.length + todo.toClose.length;
+  $("todoCount").textContent = n; $("todoCount").classList.toggle("hidden", !n);
+  const views = { todo: viewTodo, appts: viewAppts, leads: viewLeads, results: viewResults };
+  $("view").replaceChildren(...[].concat(views[S.tab](todo)));
+}
+
+function todoItems() {
+  const now = Date.now();
+  return {
+    handoffs: S.convs.filter((c) => c.status === "handoff"),
+    toConfirm: S.appts.filter((a) => a.status === "booked" && new Date(a.starts_at).getTime() > now),
+    toClose: S.appts.filter((a) => ["booked", "confirmed"].includes(a.status) && new Date(a.starts_at).getTime() + 3600000 < now),
+    today: S.appts.filter((a) => localDay(a.starts_at) === localDay(new Date()) && a.status !== "cancelled"),
+  };
+}
+
+function apptRow(a, opts = {}) {
+  const lead = S.leads.find((l) => l.id === a.lead_id) || leadOf(a.conversation_id) || {};
+  const past = new Date(a.starts_at).getTime() < Date.now();
+  const btn = (st, label, ghost = true) => h("button", { class: `btn small ${ghost ? "ghost" : ""}`, type: "button", onclick: (e) => { e.stopPropagation(); setApptStatus(a, st); } }, label);
+  const actions = past
+    ? [btn("showed", "Présent", false), btn("no_show", "Absent")]
+    : [a.status === "booked" ? btn("confirmed", "Confirmé", false) : null, btn("cancelled", "Annuler")];
+  return h("div", { class: "row" },
+    h("div", { class: "when" }, opts.timeOnly ? timeOnly(a.starts_at) : dayTime(a.starts_at), h("small", {}, KIND[a.kind] || a.kind)),
+    h("div", { class: "main" }, h("b", {}, lead.name || "Client sans nom"), h("span", {}, [a.vehicle, a.handled_by ? `traité par ${a.handled_by}` : null].filter(Boolean).join(" · "))),
+    telLink(lead.phone),
+    pill(a.status, ASTATUS[a.status] || a.status),
+    h("div", { class: "actions" }, opts.noActions ? null : actions,
+      a.conversation_id && !opts.inDrawer ? h("button", { class: "btn small ghost", type: "button", onclick: () => openConv(a.conversation_id) }, "Conversation") : null));
+}
+
+function viewTodo(t) {
+  const out = [];
+  out.push(h("div", { class: "card" }, h("h2", {}, "Clients à rappeler", h("small", {}, "le client a demandé une personne")),
+    t.handoffs.length ? t.handoffs.map((c) => {
+      const lead = leadOf(c.id) || {};
+      const reason = (lead.notes || "").replace(/^Handoff requested:\s*/i, "");
+      return h("div", { class: "row" },
+        h("div", { class: "main" }, h("b", {}, lead.name || "Client sans nom"), h("span", {}, [reason || "raison non précisée", rel(c.updated_at)].join(" · "))),
+        telLink(lead.phone),
+        h("div", { class: "actions" },
+          h("button", { class: "btn small ghost", type: "button", onclick: () => openConv(c.id) }, "Conversation"),
+          h("button", { class: "btn small", type: "button", onclick: () => markHandled(c) }, "Marquer traité")));
+    }) : h("div", { class: "empty" }, "Aucun client en attente. 👍")));
+  out.push(h("div", { class: "card" }, h("h2", {}, "Rendez-vous à confirmer", h("small", {}, "appeler le client pour confirmer")),
+    t.toConfirm.length ? t.toConfirm.map((a) => apptRow(a)) : h("div", { class: "empty" }, "Tous les rendez-vous à venir sont confirmés.")));
+  if (t.toClose.length) out.push(h("div", { class: "card" }, h("h2", {}, "Rendez-vous passés à fermer", h("small", {}, "le client s'est-il présenté?")),
+    t.toClose.map((a) => apptRow(a))));
+  out.push(h("div", { class: "card" }, h("h2", {}, "Aujourd'hui"),
+    t.today.length ? t.today.map((a) => apptRow(a, { timeOnly: true })) : h("div", { class: "empty" }, "Aucun rendez-vous aujourd'hui.")));
+  return out;
+}
+
+function viewAppts() {
+  const now = Date.now();
+  const list = S.apptFilter === "upcoming"
+    ? S.appts.filter((a) => new Date(a.starts_at).getTime() >= now - 3600000)
+    : [...S.appts].filter((a) => new Date(a.starts_at).getTime() < now - 3600000).reverse();
+  const tabs = h("div", { class: "toolbar" },
+    ["upcoming", "past"].map((k) => h("button", { class: `btn small ${S.apptFilter === k ? "" : "ghost"}`, type: "button", onclick: () => { S.apptFilter = k; render(); } }, k === "upcoming" ? "À venir" : "Passés")));
+  return h("div", { class: "card" }, h("h2", {}, "Rendez-vous", h("small", {}, `${list.length}`)), tabs,
+    list.length ? list.map((a) => apptRow(a)) : h("div", { class: "empty" }, "Aucun rendez-vous."));
+}
+
+function viewLeads() {
+  const q = S.q.toLowerCase();
+  const rows = S.leads.filter((l) => !q || [l.name, l.phone, l.email, l.vehicle_interest].some((v) => (v || "").toLowerCase().includes(q)));
+  const search = h("input", { type: "search", placeholder: "Rechercher un nom, un téléphone, un véhicule…", value: S.q, "aria-label": "Rechercher" });
+  search.addEventListener("input", () => { S.q = search.value; const pos = search.selectionStart; render(); const s = document.querySelector("main input[type=search]"); s.focus(); s.setSelectionRange(pos, pos); });
+  return h("div", { class: "card" }, h("h2", {}, "Clients", h("small", {}, `${rows.length} sur ${S.leads.length} · 120 derniers jours`)),
+    h("div", { class: "toolbar" }, search),
+    rows.length ? h("div", { class: "tablewrap" }, h("table", {},
+      h("thead", {}, h("tr", {}, ["Date", "Nom", "Téléphone", "Véhicule", "Budget", "Échange", "Statut"].map((t) => h("th", {}, t)))),
+      h("tbody", {}, rows.map((l) => {
+        const conv = convOf(l.conversation_id); const appt = S.appts.find((a) => a.lead_id === l.id);
+        const status = appt ? pill(appt.status, ASTATUS[appt.status]) : conv ? pill(conv.status, CSTATUS[conv.status]) : "";
+        return h("tr", { class: "click", tabindex: "0", onclick: () => l.conversation_id && openConv(l.conversation_id), onkeydown: (e) => e.key === "Enter" && l.conversation_id && openConv(l.conversation_id) },
+          h("td", { class: "muted" }, dateOnly(l.created_at)), h("td", {}, l.name || h("span", { class: "muted" }, "—")),
+          h("td", {}, l.phone || h("span", { class: "muted" }, "—")), h("td", {}, l.vehicle_interest || ""), h("td", {}, l.budget || ""),
+          h("td", {}, l.trade_in || ""), h("td", {}, status));
+      })))) : h("div", { class: "empty" }, S.leads.length ? "Aucun résultat." : "Aucun client pour l'instant. Les conversations de l'assistant apparaîtront ici."));
+}
+
+function weekStart(d) { // Monday 00:00 local, as YYYY-MM-DD
+  const ld = new Date(localDay(d) + "T12:00:00"); const dow = (ld.getDay() + 6) % 7; ld.setDate(ld.getDate() - dow);
+  return ld.toISOString().slice(0, 10);
+}
+function viewResults() {
+  const D = S.dealer, start = D.pilot_started_on, target = D.guarantee_target || 10;
+  const sinceStart = (iso) => !start || localDay(iso) >= start;
+  const pilotAppts = S.appts.filter((a) => a.status !== "cancelled" && sinceStart(a.created_at));
+  const pilotDays = start ? Math.max(0, Math.floor((Date.now() - new Date(start + "T00:00:00").getTime()) / 86400000)) : null;
+  const decided = S.appts.filter((a) => ["showed", "no_show"].includes(a.status));
+  const showRate = decided.length ? Math.round(100 * decided.filter((a) => a.status === "showed").length / decided.length) : null;
+  const withPhone = S.leads.filter((l) => l.phone).length;
+  const pct = Math.min(100, Math.round(100 * pilotAppts.length / target));
+
+  // weekly table, last 8 weeks
+  const weeks = {};
+  const bump = (iso, k) => { const w = weekStart(iso); (weeks[w] ??= { convs: 0, leads: 0, appts: 0, showed: 0, noshow: 0 })[k]++; };
+  S.convs.forEach((c) => bump(c.created_at, "convs"));
+  S.leads.filter((l) => l.phone).forEach((l) => bump(l.created_at, "leads"));
+  S.appts.filter((a) => a.status !== "cancelled").forEach((a) => bump(a.created_at, "appts"));
+  S.appts.forEach((a) => { if (a.status === "showed") bump(a.starts_at, "showed"); if (a.status === "no_show") bump(a.starts_at, "noshow"); });
+  const wkeys = Object.keys(weeks).sort().reverse().slice(0, 8);
+
+  return [
+    h("div", { class: "kpis" },
+      h("div", { class: "kpi guarantee" }, h("div", { class: "label" }, `Garantie : rendez-vous obtenus`),
+        h("div", { class: "value" }, `${pilotAppts.length} / ${target}`),
+        h("div", { class: "meter", role: "progressbar", "aria-valuenow": pilotAppts.length, "aria-valuemax": target }, h("div", { style: `width:${pct}%` })),
+        h("div", { class: "sub" }, start ? `depuis le ${dateOnly(start + "T12:00:00")}${pilotDays != null ? ` (jour ${pilotDays + 1})` : ""} · rendez-vous non annulés` : "date de début non définie")),
+      h("div", { class: "kpi" }, h("div", { class: "label" }, "Conversations"), h("div", { class: "value" }, S.convs.length), h("div", { class: "sub" }, "120 derniers jours")),
+      h("div", { class: "kpi" }, h("div", { class: "label" }, "Clients avec téléphone"), h("div", { class: "value" }, withPhone),
+        h("div", { class: "sub" }, S.convs.length ? `${Math.round(100 * withPhone / S.convs.length)} % des conversations` : "—")),
+      h("div", { class: "kpi" }, h("div", { class: "label" }, "Taux de présence"), h("div", { class: "value" }, showRate == null ? "—" : `${showRate} %`),
+        h("div", { class: "sub" }, decided.length ? `${decided.length} rendez-vous fermés (présent ou absent)` : "aucun rendez-vous fermé"))),
+    h("div", { class: "card" }, h("h2", {}, "Par semaine", h("small", {}, "semaine commençant le lundi")),
+      wkeys.length ? h("div", { class: "tablewrap" }, h("table", {},
+        h("thead", {}, h("tr", {}, h("th", {}, "Semaine du"), ...["Conversations", "Clients avec tél.", "Rendez-vous pris", "Présents", "Absents"].map((t) => h("th", { class: "num" }, t)))),
+        h("tbody", {}, wkeys.map((w) => { const r = weeks[w]; return h("tr", {}, h("td", {}, dateOnly(w + "T12:00:00")),
+          ...[r.convs, r.leads, r.appts, r.showed, r.noshow].map((v) => h("td", { class: "num" }, v))); })))) : h("div", { class: "empty" }, "Pas encore de données.")),
+    h("div", { class: "card" }, h("h2", {}, "Alertes envoyées", h("small", {}, D.alert_email ? `à ${D.alert_email}` : "aucune adresse configurée")),
+      S.notifs.length ? h("div", { class: "tablewrap" }, h("table", {},
+        h("thead", {}, h("tr", {}, ["Date", "Type", "Canal", "Client", "Statut"].map((t) => h("th", {}, t)))),
+        h("tbody", {}, S.notifs.map((n) => { const lead = leadOf(n.conversation_id) || {};
+          return h("tr", { class: n.conversation_id ? "click" : null, onclick: () => n.conversation_id && openConv(n.conversation_id) },
+            h("td", { class: "muted" }, dayTime(n.created_at)), h("td", {}, EVENT[n.event] || n.event), h("td", {}, n.channel === "sms" ? "Texto" : "Courriel"),
+            h("td", {}, lead.name || "—"), h("td", {}, pill(n.status, NSTATUS[n.status] || n.status))); })))) : h("div", { class: "empty" }, "Aucune alerte pour l'instant.")),
+  ];
+}
+
+// ---------- conversation drawer ----------
+let drawerConv = null;
+function closeDrawer() { drawerConv = null; $("drawerRoot").replaceChildren(); }
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+function refreshDrawer() { if (drawerConv) openConv(drawerConv, true); }
+async function openConv(id, keepMsgs) {
+  drawerConv = id;
+  const conv = convOf(id); const lead = leadOf(id) || {};
+  const appts = S.appts.filter((a) => a.conversation_id === id);
+  const chat = h("div", { class: "chat" }, h("div", { class: "empty" }, "Chargement…"));
+  const fields = [["Téléphone", lead.phone ? telLink(lead.phone) : null], ["Courriel", lead.email], ["Véhicule", lead.vehicle_interest], ["Budget", lead.budget],
+    ["Échange", lead.trade_in], ["Financement", lead.financing], ["Échéancier", lead.timeline], ["Notes", lead.notes ? lead.notes.replace(/^Handoff requested:\s*/i, "Demande de suivi : ") : null]]
+    .filter(([, v]) => v);
+  const drawer = h("div", { class: "drawer", role: "dialog", "aria-modal": "true", "aria-label": "Conversation" },
+    h("div", { class: "hd" }, h("h3", {}, lead.name || "Client sans nom", h("div", { class: "muted", style: "font-size:13px;font-weight:400" },
+      conv ? `${conv.channel === "web" ? "Clavardage du site" : conv.channel} · ${dayTime(conv.created_at)}` : "")),
+      conv ? pill(conv.status, CSTATUS[conv.status]) : null,
+      h("button", { class: "btn small ghost", type: "button", onclick: closeDrawer, "aria-label": "Fermer" }, "✕")),
+    h("div", { class: "bd" },
+      conv?.status === "handoff" ? h("div", { class: "notice" }, "Ce client a demandé à parler à une personne. ",
+        h("button", { class: "btn small", type: "button", onclick: () => markHandled(conv) }, "Marquer traité")) : null,
+      conv?.handled_by ? h("div", { class: "muted" }, `Traité par ${conv.handled_by}${conv.handled_at ? ", " + dayTime(conv.handled_at) : ""}`) : null,
+      fields.length ? h("dl", {}, fields.map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)])) : h("div", { class: "empty" }, "Aucune information client."),
+      appts.length ? h("div", {}, appts.map((a) => apptRow(a, { inDrawer: true }))) : null,
+      h("div", {}, h("h4", { style: "margin:0 0 8px" }, "Conversation"), chat)));
+  $("drawerRoot").replaceChildren(h("div", { class: "scrim", onclick: closeDrawer }), drawer);
+  const { data: msgs, error } = await sb.from("messages").select("role, content, created_at").eq("conversation_id", id).order("id");
+  if (drawerConv !== id) return;
+  chat.replaceChildren(...(error ? [h("div", { class: "empty" }, "Impossible de charger la conversation.")]
+    : msgs.length ? msgs.map((m) => h("div", { class: `msg ${m.role}` }, m.content, h("time", {}, (m.role === "user" ? "Client · " : "Assistant IA · ") + timeOnly(m.created_at))))
+    : [h("div", { class: "empty" }, "Aucun message.")]));
+}
+
+boot();
+</script>
+</body>
+</html>
