@@ -114,7 +114,6 @@
 </style>
 </head>
 <body>
-<div class="draft" data-i18n="draft">Ébauche pour approbation : téléphone, heures d'ouverture et inventaire à confirmer avec Gestion C.P. Auto.</div>
 
 <header class="top">
   <div class="wrap bar">
@@ -207,14 +206,16 @@
         <p class="note" data-i18n="byAppt" style="font-weight:600;color:var(--accent)">Visites sur rendez-vous seulement.</p>
         <p class="note" id="phoneLine" data-i18n="phoneTbd">Téléphone : à confirmer</p>
         <div class="row">
-          <a class="btn dark" href="https://www.google.com/maps/search/?api=1&query=257+chemin+de+la+Grande-C%C3%B4te+Saint-Eustache+QC+J7P+1C1" target="_blank" rel="noopener" data-i18n="directions">Itinéraire</a>
-          <button class="btn primary" type="button" data-chat="book" data-i18n="ctaBook">Prendre rendez-vous</button>
+          <a class="btn primary" href="https://www.google.com/maps/search/?api=1&query=257+chemin+de+la+Grande-C%C3%B4te+Saint-Eustache+QC+J7P+1C1" target="_blank" rel="noopener" data-i18n="directions">Itinéraire</a>
         </div>
       </div>
       <div class="panel">
-        <h3 data-i18n="hoursTitle">Heures d'ouverture</h3>
-        <table class="hours" id="hours"></table>
-        <p class="note" data-i18n="hoursNote">Heures à confirmer.</p>
+        <h3 data-i18n="apptTitle">Prendre rendez-vous</h3>
+        <p data-i18n="apptText">Réservez votre visite ou votre essai routier en ligne ou par téléphone. Un membre de l'équipe confirme chaque rendez-vous.</p>
+        <div class="row">
+          <button class="btn primary" type="button" data-chat="book" data-i18n="ctaBook">Prendre rendez-vous</button>
+          <a class="btn dark" id="apptCall" href="tel:+15148306930" data-i18n="callBtn">Appeler le 514-830-6930</a>
+        </div>
       </div>
     </div>
   </section>
@@ -246,7 +247,7 @@
       t1:"Inspection bienvenue",t1s:"Faites inspecter le véhicule par le mécanicien de votre choix avant d'acheter.",t2:"Échanges acceptés",t2s:"Votre véhicule actuel est évalué sur place, sans engagement.",t3:"Réponse 24 h/24",t3s:"Une question à 22 h? Notre assistant virtuel répond tout de suite.",
       invTitle:"Inventaire",invSub:"Prix affichés avant taxes (TPS/TVQ).",search:"Marque, modèle…",allTypes:"Tous les types",featOpt:"★ En vedette",feat:"Vedette",anyPrice:"Tous les prix",
       howTitle:"Comment ça marche",s1:"Choisissez",s1p:"Parcourez l'inventaire et posez vos questions sur un véhicule, de jour comme de soir.",s2:"Réservez",s2p:"Choisissez une heure pour l'essai routier; vous recevez la confirmation de l'équipe.",s3:"Essayez et décidez",s3p:"Venez voir le véhicule, faites-le inspecter si vous le souhaitez, et repartez l'esprit tranquille.",
-      visitTitle:"Nous visiter",phoneTbd:"Téléphone : à confirmer",byAppt:"Visites sur rendez-vous seulement.",directions:"Itinéraire",hoursTitle:"Heures d'ouverture",hoursNote:"Heures à confirmer.",
+      visitTitle:"Nous visiter",phoneTbd:"Téléphone : à confirmer",byAppt:"Visites sur rendez-vous seulement.",directions:"Itinéraire",apptTitle:"Prendre rendez-vous",apptText:"Réservez votre visite ou votre essai routier en ligne ou par téléphone. Un membre de l'équipe confirme chaque rendez-vous.",callBtn:"Appeler le 514-830-6930",
       foot:"Prix avant taxes. Le clavardage est assuré par un assistant virtuel (IA); un membre de l'équipe confirme chaque rendez-vous.",
       emptyT:"L'inventaire arrive bientôt",emptyP:"Les véhicules s'afficheront ici dès qu'ils seront ajoutés. Écrivez-nous pour savoir ce qui est disponible.",noMatch:"Aucun véhicule ne correspond à votre recherche.",
       ask:"Ce véhicule m'intéresse",askText:function(v){return "Bonjour, le "+v+" m'intéresse. Est-il toujours disponible?";},bookText:"Bonjour, j'aimerais prendre rendez-vous pour un essai routier.",
@@ -261,7 +262,7 @@
       t1:"Inspections welcome",t1s:"Have the vehicle inspected by the mechanic of your choice before you buy.",t2:"Trade-ins accepted",t2s:"Your current vehicle is appraised on site, no obligation.",t3:"Answers 24/7",t3s:"A question at 10 pm? Our virtual assistant replies right away.",
       invTitle:"Inventory",invSub:"Prices shown before taxes (GST/QST).",search:"Make, model…",allTypes:"All types",featOpt:"★ Featured",feat:"Featured",anyPrice:"Any price",
       howTitle:"How it works",s1:"Choose",s1p:"Browse the inventory and ask about any vehicle, day or night.",s2:"Book",s2p:"Pick a time for your test drive; the team sends you a confirmation.",s3:"Drive and decide",s3p:"Come see the vehicle, have it inspected if you like, and leave with peace of mind.",
-      visitTitle:"Visit us",phoneTbd:"Phone: to be confirmed",byAppt:"Visits by appointment only.",directions:"Directions",hoursTitle:"Opening hours",hoursNote:"Hours to be confirmed.",
+      visitTitle:"Visit us",phoneTbd:"Phone: to be confirmed",byAppt:"Visits by appointment only.",directions:"Directions",apptTitle:"Book an appointment",apptText:"Book your visit or test drive online or by phone. A team member confirms every appointment.",callBtn:"Call 514-830-6930",
       foot:"Prices before taxes. Chat is handled by a virtual assistant (AI); a team member confirms every appointment.",
       emptyT:"Inventory coming soon",emptyP:"Vehicles will appear here as soon as they are added. Message us to ask what's available.",noMatch:"No vehicle matches your search.",
       ask:"I'm interested",askText:function(v){return "Hi, I'm interested in the "+v+". Is it still available?";},bookText:"Hi, I'd like to book a test drive.",
@@ -289,13 +290,7 @@
   }
 
   function renderHours(){
-    var h = (dealer && dealer.hours) || DEFAULT_HOURS, keys=['mon','tue','wed','thu','fri','sat','sun'], idx=[1,2,3,4,5,6,0];
-    document.getElementById('hours').innerHTML = keys.map(function(k,i){
-      var v = h[k] || 'closed';
-      var shown = v==='closed' ? t('closed') : v.replace('-', ' – ');
-      return '<tr><td>'+esc(t('days')[idx[i]])+'</td><td>'+esc(shown)+'</td></tr>';
-    }).join('');
-    if (dealer && dealer.phone) { var pl=document.getElementById('phoneLine'); pl.innerHTML = (lang==='fr'?'Téléphone : ':'Phone: ')+'<a href="tel:+1'+esc(dealer.phone.replace(/\D/g,''))+'" style="font-weight:600;color:var(--ink)">'+esc(dealer.phone)+'</a>'; pl.style.fontSize='16px'; }
+    if (dealer && dealer.phone) { var pl=document.getElementById('phoneLine'); pl.innerHTML = (lang==='fr'?'Téléphone : ':'Phone: ')+'<a href="tel:+1'+esc(dealer.phone.replace(/\D/g,''))+'" style="font-weight:600;color:var(--ink)">'+esc(dealer.phone)+'</a>'; pl.style.fontSize='16px'; var ac=document.getElementById('apptCall'); ac.href='tel:+1'+dealer.phone.replace(/\D/g,''); ac.textContent=(lang==='fr'?'Appeler le ':'Call ')+dealer.phone; }
   }
 
   function title(v){ return [v.year,v.make,v.model,v.trim].filter(Boolean).join(' '); }
