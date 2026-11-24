@@ -36,6 +36,7 @@
   .btn.primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 18px rgba(217,72,15,.28)}
   .btn.ghost{background:transparent;color:var(--paper);border:1.5px solid rgba(247,245,240,.55)}
   .btn.dark{background:var(--ink);color:var(--paper)}
+  .btn.wa{background:#1f7a4d;color:#fff;display:inline-flex;align-items:center;gap:8px}
 
   .hero{background:var(--ink);color:var(--paper);position:relative;overflow:hidden}
   .hero .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;padding-top:72px;padding-bottom:80px}
@@ -221,10 +222,11 @@
       </div>
       <div class="panel">
         <h3 data-i18n="apptTitle">Prendre rendez-vous</h3>
-        <p data-i18n="apptText">Réservez votre visite ou votre essai routier en ligne ou par téléphone. Un membre de l'équipe confirme chaque rendez-vous.</p>
+        <p data-i18n="apptText">Réservez votre visite ou votre essai routier en ligne, par téléphone ou par WhatsApp. Un membre de l'équipe confirme chaque rendez-vous.</p>
         <div class="row">
           <button class="btn primary" type="button" data-chat="book" data-i18n="ctaBook">Prendre rendez-vous</button>
           <a class="btn dark" id="apptCall" href="tel:+15148306930" data-i18n="callBtn">Appeler le 514-830-6930</a>
+          <a class="btn wa" id="apptWa" href="https://wa.me/15148306930" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex:none"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.4-.3z"/></svg><span>WhatsApp</span></a>
         </div>
       </div>
     </div>
@@ -266,7 +268,7 @@
       t1:"Inspection bienvenue",t1s:"Faites inspecter le véhicule par le mécanicien de votre choix avant d'acheter.",t2:"Échanges acceptés",t2s:"Votre véhicule actuel est évalué sur place, sans engagement.",t3:"Réponse 24 h/24",t3s:"Une question à 22 h? Notre assistant virtuel répond tout de suite.",
       invTitle:"Inventaire",invSub:"Prix affichés avant taxes (TPS/TVQ).",search:"Marque, modèle…",allTypes:"Tous les types",featOpt:"★ En vedette",feat:"Vedette",anyPrice:"Tous les prix",
       howTitle:"Comment ça marche",s1:"Choisissez",s1p:"Parcourez l'inventaire et posez vos questions sur un véhicule, de jour comme de soir.",s2:"Réservez",s2p:"Choisissez une heure pour l'essai routier; vous recevez la confirmation de l'équipe.",s3:"Essayez et décidez",s3p:"Venez voir le véhicule, faites-le inspecter si vous le souhaitez, et repartez l'esprit tranquille.",
-      visitTitle:"Nous visiter",phoneTbd:"Téléphone : à confirmer",byAppt:"Visites sur rendez-vous seulement.",directions:"Itinéraire",apptTitle:"Prendre rendez-vous",seePhotos:"Voir les photos",apptText:"Réservez votre visite ou votre essai routier en ligne ou par téléphone. Un membre de l'équipe confirme chaque rendez-vous.",callBtn:"Appeler le 514-830-6930",
+      visitTitle:"Nous visiter",phoneTbd:"Téléphone : à confirmer",byAppt:"Visites sur rendez-vous seulement.",directions:"Itinéraire",apptTitle:"Prendre rendez-vous",seePhotos:"Voir les photos",waText:"Bonjour Gestion C.P. Auto! J'aimerais prendre rendez-vous pour voir un véhicule.",apptText:"Réservez votre visite ou votre essai routier en ligne, par téléphone ou par WhatsApp. Un membre de l'équipe confirme chaque rendez-vous.",callBtn:"Appeler le 514-830-6930",
       foot:"Prix avant taxes. Le clavardage est assuré par un assistant virtuel (IA); un membre de l'équipe confirme chaque rendez-vous.",
       emptyT:"L'inventaire arrive bientôt",emptyP:"Les véhicules s'afficheront ici dès qu'ils seront ajoutés. Écrivez-nous pour savoir ce qui est disponible.",noMatch:"Aucun véhicule ne correspond à votre recherche.",
       ask:"Ce véhicule m'intéresse",askText:function(v){return "Bonjour, le "+v+" m'intéresse. Est-il toujours disponible?";},bookText:"Bonjour, j'aimerais prendre rendez-vous pour un essai routier.",
@@ -281,7 +283,7 @@
       t1:"Inspections welcome",t1s:"Have the vehicle inspected by the mechanic of your choice before you buy.",t2:"Trade-ins accepted",t2s:"Your current vehicle is appraised on site, no obligation.",t3:"Answers 24/7",t3s:"A question at 10 pm? Our virtual assistant replies right away.",
       invTitle:"Inventory",invSub:"Prices shown before taxes (GST/QST).",search:"Make, model…",allTypes:"All types",featOpt:"★ Featured",feat:"Featured",anyPrice:"Any price",
       howTitle:"How it works",s1:"Choose",s1p:"Browse the inventory and ask about any vehicle, day or night.",s2:"Book",s2p:"Pick a time for your test drive; the team sends you a confirmation.",s3:"Drive and decide",s3p:"Come see the vehicle, have it inspected if you like, and leave with peace of mind.",
-      visitTitle:"Visit us",phoneTbd:"Phone: to be confirmed",byAppt:"Visits by appointment only.",directions:"Directions",apptTitle:"Book an appointment",seePhotos:"See photos",apptText:"Book your visit or test drive online or by phone. A team member confirms every appointment.",callBtn:"Call 514-830-6930",
+      visitTitle:"Visit us",phoneTbd:"Phone: to be confirmed",byAppt:"Visits by appointment only.",directions:"Directions",apptTitle:"Book an appointment",seePhotos:"See photos",waText:"Hi Gestion C.P. Auto! I would like to book an appointment to see a vehicle.",apptText:"Book your visit or test drive online, by phone or on WhatsApp. A team member confirms every appointment.",callBtn:"Call 514-830-6930",
       foot:"Prices before taxes. Chat is handled by a virtual assistant (AI); a team member confirms every appointment.",
       emptyT:"Inventory coming soon",emptyP:"Vehicles will appear here as soon as they are added. Message us to ask what's available.",noMatch:"No vehicle matches your search.",
       ask:"I'm interested",askText:function(v){return "Hi, I'm interested in the "+v+". Is it still available?";},bookText:"Hi, I'd like to book a test drive.",
@@ -310,6 +312,10 @@
 
   function renderHours(){
     if (dealer && dealer.phone) { var pl=document.getElementById('phoneLine'); pl.innerHTML = (lang==='fr'?'Téléphone : ':'Phone: ')+'<a href="tel:+1'+esc(dealer.phone.replace(/\D/g,''))+'" style="font-weight:600;color:var(--ink)">'+esc(dealer.phone)+'</a>'; pl.style.fontSize='16px'; var ac=document.getElementById('apptCall'); ac.href='tel:+1'+dealer.phone.replace(/\D/g,''); ac.textContent=(lang==='fr'?'Appeler le ':'Call ')+dealer.phone; }
+    var d=(dealer&&dealer.phone?dealer.phone:'514-830-6930').replace(/\D/g,'');
+    var wa='https://wa.me/1'+d+'?text='+encodeURIComponent(t('waText'));
+    document.getElementById('apptWa').href=wa;
+    var pl2=document.getElementById('phoneLine'); if (pl2 && !pl2.querySelector('.wal')) { var a=document.createElement('a'); a.className='wal'; a.href=wa; a.target='_blank'; a.rel='noopener'; a.textContent='WhatsApp'; a.style.cssText='font-weight:600;color:#1f7a4d;margin-left:10px'; pl2.appendChild(document.createTextNode(' ·')); pl2.appendChild(a); } else if (pl2) pl2.querySelector('.wal').href=wa;
   }
 
   function title(v){ return [v.year,v.make,v.model,v.trim].filter(Boolean).join(' '); }
